@@ -1,6 +1,6 @@
 CC=avr-gcc
 OBJCOPY=avr-objcopy
-CFLAGS=-Os -DF_CPU=16000000UL -mmcu=atmega328p
+CFLAGS=-Os -mmcu=atmega328p -DF_CPU=13000000
 PORT=/dev/ttyACM0
 
 all: main.hex

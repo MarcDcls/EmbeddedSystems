@@ -19,10 +19,23 @@ void blue_led_blink(int duration) {
         PORTD &= ~_BV(PD6);
         _delay_ms(TIMER);
         elapsed_time += 2;
-    }
-}
 
 int main() {
     init_pins();
-    blue_led_blink(120);
+
+    // blue_led_blink(120);
+
+    while (1)
+    {
+        if (PIND & _BV(2))
+        {
+            // PORTD |= _BV(PD6);
+            PORTD &= ~_BV(PD6);
+        }
+        else
+        {
+            PORTD |= _BV(PD6);
+            // PORTD &= ~_BV(PD6);
+        }
+    }
 }
