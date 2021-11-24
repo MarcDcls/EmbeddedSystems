@@ -1,18 +1,20 @@
-CC=avr-gcc
-OBJCOPY=avr-objcopy
-CFLAGS=-Os -mmcu=atmega328p -DF_CPU=13000000
-PORT=/dev/ttyACM0
+CC = avr-gcc
+OBJCOPY = avr-objcopy
+CFLAGS = -Os -mmcu=atmega328p -DF_CPU=13000000
+PORT = /dev/ttyACM0
+BIN = main
+OBJS = main.o spi.o
 
-all: main.hex
+all: $(BIN).hex
 
-main.hex: main.elf
-	$(OBJCOPY) -O ihex -R .eeprom main.elf main.hex
+$(BIN).hex: $(BIN).elf
+	$(OBJCOPY) -O ihex -R .eeprom $< $@
 
-main.elf: main.c
-	$(CC) $(CFLAGS) -o main.elf main.c
+$(BIN).elf: $(OBJS)
+	$(CC) -o $@ $^ $(CFLAGS)
 
-install: main.hex
-	avrdude -F -V -c usbasp -p ATMEGA328P -P $(PORT) -b 13000000 -U flash:w:main.hex:i
+install: ${BIN}.hex
+	avrdude -F -V -c usbasp -p ATMEGA328P -P $(PORT) -b 13000000 -U flash:w:$<
 
 clean:
-	rm -f *.elf *.hex *.o
+	rm -f ${BIN}.elf ${BIN}.hex ${OBJS}
