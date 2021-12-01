@@ -1,6 +1,6 @@
 #include <avr/io.h>
-#include <avr/interrupt.h>
 #include <util/delay.h>
+#include <time.h>
 
 #include "spi.h"
 
@@ -39,6 +39,32 @@ int is_magnet_dectected() {
     return 1;
 }
 
+void quarter(int duration){
+    struct tm initial_tm;
+    struct tm current_tm;
+    SPI_MasterInit();
+    while (current_tm.tm_sec - initial_tm.tm_sec < duration) {
+        if(is_magnet_dectected()){
+            SPI_MasterTransmit(0b1000000000000000);
+            _delay_ms(13);
+            SPI_MasterTransmit(0x00);
+        }
+        struct tm current_tm;
+    }
+}
+
+//int* compute_timings(int h, int, m, int s, int time_cycle){
+//    times[]
+//    time_h = h%12 * time_cycle / 12;
+//    time_m = m * time_cycle / 60;
+//    time_s = s * time_cycle / 60;
+//    return
+//}
+
+void needles_clock(int h, int m, int s){
+
+}
+
 int main() {
 //    blue_led_blink(120);
 
@@ -51,13 +77,15 @@ int main() {
 //        }
 //    }
 
-    const uint16_t leds0 = 0x00;
-    const uint16_t leds1 = 0b111111111111111;
+//    const uint16_t leds0 = 0x00;
+//    const uint16_t leds1 = 0b111111111111111;
+//
+//    SPI_MasterInit();
+//
+//    while(1){
+//        SPI_MasterTransmit(leds0);
+//        blue_led_debug();
+//    }
 
-    SPI_MasterInit();
-
-    while(1){
-        SPI_MasterTransmit(leds0);
-        blue_led_debug();
-    }
+    quarter(120);
 }
