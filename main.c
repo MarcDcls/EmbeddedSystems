@@ -3,6 +3,8 @@
 #include <time.h>
 
 #include "spi.h"
+#include "bluetooth.h"
+#include "clock.h"
 
 #define TIMER 1000
 
@@ -61,10 +63,6 @@ void quarter(int duration){
 //    return
 //}
 
-void needles_clock(int h, int m, int s){
-
-}
-
 int main() {
 //    blue_led_blink(120);
 
@@ -88,4 +86,5 @@ int main() {
 //    }
 
     quarter(120);
+
 }
