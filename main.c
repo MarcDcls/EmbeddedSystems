@@ -3,6 +3,7 @@
 #include <time.h>
 
 #include "spi.h"
+#include "usart.h"
 #include "bluetooth.h"
 #include "clock.h"
 
@@ -85,6 +86,6 @@ int main() {
 //        blue_led_debug();
 //    }
 
-    quarter(120);
+	init_clock();
 
 }

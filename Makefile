@@ -3,7 +3,7 @@ OBJCOPY = avr-objcopy
 CFLAGS = -Os -mmcu=atmega328p -DF_CPU=13000000
 PORT = /dev/ttyACM0
 BIN = main
-OBJS = main.o spi.o
+OBJS = main.o spi.o usart.o clock.o # bluetooth.o
 
 all: $(BIN).hex
 
