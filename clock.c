@@ -9,9 +9,9 @@ void init_clock(void)
 	//initalisation du timer (dont prescaler)
 	TCCR0A &= ~(1<<WGM20);//set mode to output compare
 	TCCR0A |= (1<<WGM21);//set mode to output compare
-	TCCR0B |=(1<<CS01);// set precaler to 64
-	TCCR0B |=(1<<CS00);// set precaler to 64
-	TCCR0B &=~(1<<CS02);// set precaler to 64
+	TCCR0B |=(1<<CS01);// set prescaler to 64
+	TCCR0B |=(1<<CS00);// set prescaler to 64
+	TCCR0B &=~(1<<CS02);// set prescaler to 64
 	TIMSK0 |=(1<<TOIE0);//enable overflow flag
 }
 
