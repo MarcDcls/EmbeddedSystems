@@ -56,6 +56,8 @@ void quarter(int duration){
     }
 }
 
+
+
 //int* compute_timings(int h, int, m, int s, int time_cycle){
 //    times[]
 //    time_h = h%12 * time_cycle / 12;
@@ -85,7 +87,11 @@ int main() {
 //        SPI_MasterTransmit(leds0);
 //        blue_led_debug();
 //    }
-
-	init_clock();
+    // quarter(100);
+    // blue_led_debug();
+    // init_clock();
+    // displaySec(10);
+	
+    init_clock();
 
 }
