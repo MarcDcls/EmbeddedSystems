@@ -1,6 +1,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <time.h>
+#include <avr/interrupt.h>
 
 #include "spi.h"
 #include "usart.h"
@@ -56,42 +57,6 @@ void quarter(int duration){
     }
 }
 
-
-
-//int* compute_timings(int h, int, m, int s, int time_cycle){
-//    times[]
-//    time_h = h%12 * time_cycle / 12;
-//    time_m = m * time_cycle / 60;
-//    time_s = s * time_cycle / 60;
-//    return
-//}
-
 int main() {
-//    blue_led_blink(120);
-
-//    while(1){
-//        if (is_magnet_dectected()){
-//            PORTD |= _BV(PD6);
-//        }
-//        else {
-//            PORTD &= ~_BV(PD6);
-//        }
-//    }
-
-//    const uint16_t leds0 = 0x00;
-//    const uint16_t leds1 = 0b111111111111111;
-//
-//    SPI_MasterInit();
-//
-//    while(1){
-//        SPI_MasterTransmit(leds0);
-//        blue_led_debug();
-//    }
-    // quarter(100);
-    // blue_led_debug();
-    // init_clock();
-    // displaySec(10);
-	
-    init_clock();
-
+    needle_clock(0, 0, 0);
 }

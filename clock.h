@@ -1,9 +1,15 @@
 #ifndef __CLOCK_H
 #define __CLOCK_H
-// void blue_led_debug();
-// ISR(TIMER0_COMPA_vect);
-void init_clock();
-void setup();
-void displaySec();
-// void loop();
+
+struct clock{
+    int hour;
+    int min;
+    int sec;
+    int hour_offset;
+    int min_offset;
+    int sec_offset;
+};
+
+void needle_clock(int h, int m, int s);
+
 #endif
