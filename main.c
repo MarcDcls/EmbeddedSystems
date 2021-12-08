@@ -2,61 +2,95 @@
 #include <util/delay.h>
 #include <time.h>
 #include <avr/interrupt.h>
+#include <string.h>
 
 #include "spi.h"
 #include "usart.h"
 #include "bluetooth.h"
 #include "clock.h"
+#include "tools.h"
 
-#define TIMER 1000
+const uint32_t RESOLUTION = 256; // imply a minimal framerate of display of 256 * 2 * 20 = ~ 20 kHz
 
-void blue_led_debug(){
-    // Make the blue LED blink 1 time
-    DDRD |= _BV(PD6); // Blue LED as output
-    PORTD |= _BV(PD6);
-    _delay_ms(200);
-    PORTD &= ~_BV(PD6);
-    _delay_ms(200);
+unsigned long global_time = 0; // framerate of our clock is 203 125 Hz
+uint16_t cycle_duration = 20000; // duration of one revolution, updated by passing in front of the magnet
+
+struct ring_buffer ring_tx;
+struct ring_buffer ring_rx;
+
+// Hall interrupt
+ISR(INT0_vect) {
+    cycle_duration = TCNT1;
+    TCNT1 = 0;
 }
 
-void blue_led_blink(int duration) {
-    // Make the blue LED blink each second
-    // duration are in seconds
-    // It's a blocking function
-    DDRD |= _BV(PD6); // Blue LED as output
-    int elapsed_time = 0;
-    while (elapsed_time < duration) {
-        PORTD |= _BV(PD6);
-        _delay_ms(TIMER);
-        PORTD &= ~_BV(PD6);
-        _delay_ms(TIMER);
-        elapsed_time += 2;
+// Bluetooth interrupt (writing)
+ISR(USART_UDRE_vect) {
+    uint8_t data = read_inter(&ring_tx);
+    UDR0 = data;
+    if (ring_tx.write = ring_tx.read) {
+        UCSR0B &= ~_BV(UDRIE0); // disable buffer-available interruption
     }
 }
 
-int is_magnet_dectected() {
-    // Return 1 if a magnet is detected by the hall sensor
-    // Return 0 otherwise
+// Bluetooth interrupt (reading)
+ISR(USART_RX_vect) {
+    unsigned char data = UDR0;
+    write_inter(data, &ring_rx);
+}
+
+void setup_clock() {
+    TCCR1B = 0b00000011; // set prescaler to 64 (minimum possible to avoid overflow on TCNT1)
+}
+
+void setup_hall() {
+    SREG |= _BV(SREG_I);
+    EIMSK |= _BV(INT0);
     DDRD &= ~_BV(PD2); // Hall sensor as input
-    if (PIND & _BV(2))
-        return 0;
-    return 1;
-}
-
-void quarter(int duration){
-    struct tm initial_tm;
-    struct tm current_tm;
-    SPI_MasterInit();
-    while (current_tm.tm_sec - initial_tm.tm_sec < duration) {
-        if(is_magnet_dectected()){
-            SPI_MasterTransmit(0b1000000000000000);
-            _delay_ms(13);
-            SPI_MasterTransmit(0x00);
-        }
-        struct tm current_tm;
-    }
 }
 
 int main() {
-    needle_clock(0, 0, 0);
+    SPI_MasterInit();
+    setup_clock();
+    setup_hall();
+    setup_bluetooth(&ring_tx, &ring_rx);
+
+    uint16_t leds[RESOLUTION];
+
+//    for (int i = 0; i < RESOLUTION; ++i) {
+//        if (i < RESOLUTION / 4) {
+//            leds[i] = 0b1000000000000000;
+//        } else {
+//            leds[i] = 0b0000000000000000;
+//        }
+//    }
+
+    for (int i = 0; i < RESOLUTION; i++) {
+        if (!(i % (RESOLUTION / 12))) {
+            leds[i] = 0b1000000000000000;
+        } else {
+            leds[i] = 0b0000000000000000;
+        }
+    }
+
+    while (1) {
+        uint32_t pos = (RESOLUTION * TCNT1) / cycle_duration;
+        if(pos > RESOLUTION - 1){
+            pos = 0;
+        }
+        SPI_MasterTransmit(leds[pos]);
+
+//        unsigned char data[5];
+//        data[0] = 't';
+//        data[1] = 'e';
+//        data[2] = 's';
+//        data[3] = 't';
+//        data[4] = '\0';
+////        itoa(pos, data, 10);
+//        for (int i = 0; i < strlen(data); i++) {
+//            ring_buffer_write(data[i], &ring_tx);
+//        }
+//        ring_buffer_write('E', &ring_tx);
+    }
+    return 0;
 }

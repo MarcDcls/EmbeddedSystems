@@ -1,46 +1,52 @@
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include <util/delay.h>
 
-#include "usart.h"
 #include "bluetooth.h"
+#include "usart.h"
 
-void init_bluetooth(void)
-{
-//init timer normal mode
-TCCR0A &= ~(1<<WGM20);
-TCCR0A &= ~(1<<WGM21);
-
-//set timer's prescaler at 64 : new freq ~200 000
-TCCR2B |=(1<<CS22);	
-
-DDRD |= _BV(PD6);
-USART_Init(MYUBRR);
+void ring_buffer_init(struct ring_buffer *rb) {
+    rb->read = 0;
+    rb->write = 0;
 }
 
-//while(1){
-//    int cmpt = 0 ;
-//    if (TOV0==1){
-//        TIFR0 &= ~(1<<TOV0);
-//        cmpt++;
-//        if(cmpt==784){
-//            cmpt=0;
-//            USART_Transmit('h');
-//        }
-//    }
-// }
+uint8_t read_inter(struct ring_buffer *rb) {
+    uint8_t data;
+    if (rb->write != rb->read) {
+        data = rb->buffer[rb->read];
+        rb->read += 1;
+        if (rb->read >= RING_BUFFER_SIZE) {
+            rb->read = 0;
+        }
+    }
+    return data;
+}
 
-//while(1){
-//    _delay_ms(2000);
-//	unsigned char data='h';
-//    USART_Transmit(data);
-//	unsigned char data1='e';
-//    USART_Transmit(data1);
-//    unsigned char data2='l';
-//    USART_Transmit(data2);
-//    unsigned char data3='l';
-//    USART_Transmit(data3);
-//    unsigned char data4='0';
-//    USART_Transmit(data4);
-//    unsigned char data5=' ';
-//    USART_Transmit(data5);
-//}
+void write_inter(uint8_t data, struct ring_buffer *rb) {
+    rb->buffer[rb->write] = data;
+    rb->write += 1;
+    if (rb->write >= RING_BUFFER_SIZE) {
+        rb->write = 0;
+    }
+}
+
+void ring_buffer_write(uint8_t data, struct ring_buffer *rb) {
+    write_inter(data, rb);
+    //enable buffer-available interruption
+    UCSR0B |= _BV(UDRIE0);
+}
+
+uint8_t ring_buffer_read(struct ring_buffer *rb) {
+    uint8_t data = read_inter(rb);
+    return data;
+}
+
+void setup_bluetooth(struct ring_buffer *tx, struct ring_buffer *rx) {
+    USART_Init(MYUBRR);
+
+    sei();
+    UCSR0B |= _BV(RXCIE0);
+
+    ring_buffer_init(tx);
+    ring_buffer_init(rx);
+}
