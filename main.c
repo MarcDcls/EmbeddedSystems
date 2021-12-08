@@ -10,7 +10,7 @@
 #include "clock.h"
 #include "tools.h"
 
-const uint32_t RESOLUTION = 256; // imply a minimal framerate of display of 256 * 2 * 20 = ~ 20 kHz
+const uint32_t RESOLUTION = 240; // imply a minimal framerate of display of 256 * 2 * 20 = ~ 20 kHz
 
 unsigned long global_time = 0; // framerate of our clock is 203 125 Hz
 uint16_t cycle_duration = 20000; // duration of one revolution, updated by passing in front of the magnet
@@ -46,6 +46,7 @@ void setup_clock() {
 void setup_hall() {
     SREG |= _BV(SREG_I);
     EIMSK |= _BV(INT0);
+    EICRA |= _BV(ISC01) | _BV(ISC01);
     DDRD &= ~_BV(PD2); // Hall sensor as input
 }
 
@@ -57,14 +58,6 @@ int main() {
 
     uint16_t leds[RESOLUTION];
 
-//    for (int i = 0; i < RESOLUTION; ++i) {
-//        if (i < RESOLUTION / 4) {
-//            leds[i] = 0b1000000000000000;
-//        } else {
-//            leds[i] = 0b0000000000000000;
-//        }
-//    }
-
     for (int i = 0; i < RESOLUTION; i++) {
         if (!(i % (RESOLUTION / 12))) {
             leds[i] = 0b1000000000000000;
@@ -74,11 +67,8 @@ int main() {
     }
 
     while (1) {
-        uint32_t pos = (RESOLUTION * TCNT1) / cycle_duration;
-        if(pos > RESOLUTION - 1){
-            pos = 0;
-        }
-        SPI_MasterTransmit(leds[pos]);
+    uint32_t pos = min(RESOLUTION - 1, (RESOLUTION * TCNT1) / cycle_duration);
+    SPI_MasterTransmit(leds[pos]);
 
 //        unsigned char data[5];
 //        data[0] = 't';
@@ -91,6 +81,7 @@ int main() {
 //            ring_buffer_write(data[i], &ring_tx);
 //        }
 //        ring_buffer_write('E', &ring_tx);
+
     }
     return 0;
 }
