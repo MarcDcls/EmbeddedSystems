@@ -1,15 +1,8 @@
 #ifndef __CLOCK_H
 #define __CLOCK_H
 
-struct clock{
-    int hour;
-    int min;
-    int sec;
-    int hour_offset;
-    int min_offset;
-    int sec_offset;
-};
+void empty_clock(uint16_t *leds, uint32_t resolution);
 
-void needle_clock(int h, int m, int s);
+void needle_clock(uint16_t* leds, uint32_t resolution, uint16_t time);
 
 #endif

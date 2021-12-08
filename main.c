@@ -10,10 +10,11 @@
 #include "clock.h"
 #include "tools.h"
 
-const uint32_t RESOLUTION = 240; // imply a minimal framerate of display of 256 * 2 * 20 = ~ 20 kHz
+const uint32_t resolution = 240; // imply a minimal framerate of display of 240 * 2 * 20 = ~ 20 kHz
 
-unsigned long global_time = 0; // framerate of our clock is 203 125 Hz
+unsigned long global_time = 0; // framerate of our clock is 50781.25 Hz -> can increment for ~ 24 hours before overflow
 uint16_t cycle_duration = 20000; // duration of one revolution, updated by passing in front of the magnet
+uint16_t nb_sec = 0;
 
 struct ring_buffer ring_tx;
 struct ring_buffer ring_rx;
@@ -22,6 +23,7 @@ struct ring_buffer ring_rx;
 ISR(INT0_vect) {
     cycle_duration = TCNT1;
     TCNT1 = 0;
+    global_time += cycle_duration;
 }
 
 // Bluetooth interrupt (writing)
@@ -40,7 +42,7 @@ ISR(USART_RX_vect) {
 }
 
 void setup_clock() {
-    TCCR1B = 0b00000011; // set prescaler to 64 (minimum possible to avoid overflow on TCNT1)
+    TCCR1B = 0b00000100; // set prescaler to 256 (no overflow on TCNT1)
 }
 
 void setup_hall() {
@@ -56,20 +58,20 @@ int main() {
     setup_hall();
     setup_bluetooth(&ring_tx, &ring_rx);
 
-    uint16_t leds[RESOLUTION];
-
-    for (int i = 0; i < RESOLUTION; i++) {
-        if (!(i % (RESOLUTION / 12))) {
-            leds[i] = 0b1000000000000000;
-        } else {
-            leds[i] = 0b0000000000000000;
-        }
-    }
-
+    uint16_t leds[resolution];
+    empty_clock(leds, resolution);
     while (1) {
-    uint32_t pos = min(RESOLUTION - 1, (RESOLUTION * TCNT1) / cycle_duration);
-    SPI_MasterTransmit(leds[pos]);
+        // Mise à jour de l'heure
+        if((uint16_t)(global_time / 50781) > nb_sec){
+            needle_clock(leds, resolution, nb_sec);
+            nb_sec++;
+        }
 
+        // Display
+        uint32_t pos = min(resolution - 1, (resolution * TCNT1) / cycle_duration);
+        SPI_MasterTransmit(leds[pos]);
+
+        // Bluetooth
 //        unsigned char data[5];
 //        data[0] = 't';
 //        data[1] = 'e';

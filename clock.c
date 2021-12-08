@@ -1,59 +1,47 @@
-#include <avr/io.h>
 #include <util/delay.h>
-#include <avr/interrupt.h>
 
 #include "clock.h"
 #include "tools.h"
-#include "spi.h"
 
-//struct clock cl;
+uint16_t big_needle = 0b0011111111111111;
+uint16_t little_needle = 0b0000000011111111;
 
-void init_clock(struct clock *cl, int h, int m, int s) {
-    cl->hour_offset = h;
-    cl->min_offset = m;
-    cl->sec_offset = s;
+void empty_clock(uint16_t *leds, uint32_t resolution) {
+    for (int i = 0; i < resolution; i++) {
+        leds[i] = 0b0000000000000000;
+    }
+    for (int i = 0; i < 12; ++i) {
+        leds[i * resolution / 12] = 0b1000000000000000;
+    }
 }
 
-void global_counter_to_clock(int global_counter, struct clock *cl) {
-    int nb_sec = (int) (global_counter / 200);
-    int nb_min = (int) (nb_sec / 60);
-    int nb_hour = (int) (nb_min / 60);
-    cl->hour = nb_hour % 12;
-    cl->min = nb_min - 60 * nb_hour;
-    cl->sec = nb_sec - 60 * nb_min;
+void seconds_to_time(uint16_t seconds, uint16_t *time) {
+    time[0] = seconds / 3600; // hours
+
+    uint16_t remaining_seconds = seconds - time[0] * 3600;
+    time[1] = remaining_seconds / 60; // minutes
+
+    remaining_seconds = remaining_seconds - time[1] * 60;
+    time[2] = remaining_seconds; // seconds
 }
 
-//void displayMin() {
-//    SPI_MasterInit();
-//    while (1) {
-//        if (is_magnet_dectected()) {
-//            for (int i = 0; i < 120; i++) {
-//                if (i == 2 * nb_min) {
-//                    SPI_MasterTransmit(0b1111111111111111);
-//                } else {
-//                    if (i <= 2 * nb_sec) {
-//                        SPI_MasterTransmit(0b1000000000000000);
-//                    }
-//                }
-//                _delay_ms(0.395);
-//                SPI_MasterTransmit(0x00);
-//            }
-//        }
-//    }
-//    while (1) {}
-//}
-//
-//void displaySec() {
-//    SPI_MasterInit();
-//    while (1) {
-//        if (is_magnet_dectected()) {
-//
-//            for (int i = 0; i < 2 * nb_sec; i++) {
-//                SPI_MasterTransmit(0b1000000000000000);
-//                _delay_ms(0.38);
-//                SPI_MasterTransmit(0x00);
-//            }
-//        }
-//    }
-//    while (1) {}
-//}
+void needle_clock(uint16_t *leds, uint32_t resolution, uint16_t seconds) {
+    uint16_t t[3];
+    seconds_to_time(seconds, t);
+
+    // Init
+    empty_clock(leds, resolution);
+
+    // Seconds
+    for (int i = 0; i < resolution * t[2] / 60; ++i) {
+        leds[i] = ~leds[i] & 0b1000000000000000;
+    }
+
+    // Minutes
+    int pos_min = resolution * t[1] / 60 + resolution * t[2] / 3600;
+    leds[pos_min] |= big_needle;
+
+    // Hours
+    int pos_hours = resolution * t[0] / 12 + resolution * t[1] / 720 + resolution * t[2] / 43200;
+    leds[pos_hours] |= little_needle;
+}
