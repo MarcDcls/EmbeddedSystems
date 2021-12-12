@@ -15,6 +15,16 @@ void empty_clock(uint16_t *leds, uint32_t resolution) {
     }
 }
 
+// void seconds_to_time(uint16_t seconds, uint16_t *time) {
+//     time[0] = seconds / 3600; // hours
+
+//     uint16_t remaining_seconds = seconds - time[0] * 3600;
+//     time[1] = remaining_seconds / 60; // minutes
+
+//     remaining_seconds = remaining_seconds - time[1] * 60;
+//     time[2] = remaining_seconds; // seconds
+// }
+
 void seconds_to_time(uint16_t seconds, uint16_t *time) {
     time[0] = seconds / 3600; // hours
 
@@ -26,22 +36,22 @@ void seconds_to_time(uint16_t seconds, uint16_t *time) {
 }
 
 void needle_clock(uint16_t *leds, uint32_t resolution, uint16_t seconds) {
-    uint16_t t[3];
+    uint16_t t[3]={};
     seconds_to_time(seconds, t);
 
     // Init
     empty_clock(leds, resolution);
 
     // Seconds
-    for (int i = 0; i < resolution * t[2] / 60; ++i) {
-        leds[i] = ~leds[i] & 0b1000000000000000;
+    for (int i = 0; i<t[2]*resolution/60 ; ++i) {
+        leds[resolution-i] = ~leds[resolution-i] & 0b1000000000000000;
     }
 
     // Minutes
     int pos_min = resolution * t[1] / 60 + resolution * t[2] / 3600;
-    leds[pos_min] |= big_needle;
+    leds[resolution-pos_min-1] |= 0b0011111111111111;
 
     // Hours
     int pos_hours = resolution * t[0] / 12 + resolution * t[1] / 720 + resolution * t[2] / 43200;
-    leds[pos_hours] |= little_needle;
+    leds[resolution-pos_hours-1] |= 0b0000000011111111;
 }
