@@ -10,7 +10,7 @@
 #include "clock.h"
 #include "tools.h"
 
-const uint32_t resolution = 240; // imply a minimal framerate of display of 240 * 2 * 20 = ~ 20 kHz
+const uint32_t resolution = 60; // imply a minimal framerate of display of 240 * 2 * 20 = ~ 20 kHz
 
 unsigned long global_time = 0;   // framerate of our clock is 50781.25 Hz -> can increment for ~ 24 hours before overflow
 uint16_t cycle_duration = 20000; // duration of one revolution, updated by passing in front of the magnet
@@ -69,17 +69,17 @@ int main()
     setup_bluetooth(&ring_tx, &ring_rx);
 
     uint16_t leds[resolution];
-    empty_clock(leds, resolution);
+    // empty_clock(leds, resolution);
     while (1)
     {
         // Mise à jour de l'heure
         if ((uint16_t)(global_time / 50781) > nb_sec)
         {
             iniSec = 0;
-            iniMinutes = 59;
-            iniHour = 6;
-            needle_clock(leds, resolution, nb_sec + 3600 * iniHour + 60 * iniMinutes + iniSec);
-            //displayImg(leds, resolution, nb_sec)
+            iniMinutes = 39;
+            iniHour = 0;
+            // needle_clock(leds, resolution, nb_sec + 3600 * iniHour + 60 * iniMinutes + iniSec);
+            displayTime(leds, resolution, nb_sec);
             nb_sec++;
         }
 

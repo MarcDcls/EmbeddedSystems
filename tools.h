@@ -15,8 +15,10 @@ int max(int a, int b);
 
 int abs(int a);
 
-float mean(int* list, int len);
+float mean(int *list, int len);
 
 uint16_t power(int x, int n);
+
+void displayTime(uint16_t *leds, uint32_t resolution, uint16_t seconds)
 
 #endif
