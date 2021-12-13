@@ -15,9 +15,9 @@ const uint32_t resolution = 60; // imply a minimal framerate of display of 240 *
 unsigned long global_time = 0;   // framerate of our clock is 50781.25 Hz -> can increment for ~ 24 hours before overflow
 uint16_t cycle_duration = 20000; // duration of one revolution, updated by passing in front of the magnet
 uint16_t nb_sec;
-uint16_t iniSec;
-uint16_t iniMinutes;
-uint16_t iniHour;
+uint16_t iniSec = 0;
+uint16_t iniMinutes = 39;
+uint16_t iniHour = 0;
 
 struct ring_buffer ring_tx;
 struct ring_buffer ring_rx;
@@ -75,12 +75,9 @@ int main()
         // Mise à jour de l'heure
         if ((uint16_t)(global_time / 50781) > nb_sec)
         {
-            iniSec = 0;
-            iniMinutes = 39;
-            iniHour = 0;
+            nb_sec++;
             // needle_clock(leds, resolution, nb_sec + 3600 * iniHour + 60 * iniMinutes + iniSec);
             displayTime(leds, resolution, nb_sec);
-            nb_sec++;
         }
 
         // Display
