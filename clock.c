@@ -49,9 +49,9 @@ void needle_clock(uint16_t *leds, uint32_t resolution, uint16_t seconds) {
 
     // Minutes
     int pos_min = resolution * t[1] / 60 + resolution * t[2] / 3600;
-    leds[resolution-pos_min-1] |= 0b0011111111111111;
+    leds[resolution-pos_min-1] |= big_needle;
 
     // Hours
     int pos_hours = resolution * t[0] / 12 + resolution * t[1] / 720 + resolution * t[2] / 43200;
-    leds[resolution-pos_hours-1] |= 0b0000000011111111;
+    leds[resolution-pos_hours-1] |= little_needle;
 }
